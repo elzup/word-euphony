@@ -1,0 +1,56 @@
+{
+  "name": "word-euphony",
+  "version": "0.0.0",
+  "description": "Quantify the euphony (ease of pronunciation) of words via IPA phonemes, 0-100",
+  "author": "elzup",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/cjs/index.js",
+  "module": "lib/esm/index.js",
+  "types": "lib/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "import": "./lib/esm/index.js",
+      "require": "./lib/cjs/index.js"
+    }
+  },
+  "repository": "elzup/word-euphony",
+  "bugs": {
+    "url": "https://github.com/elzup/word-euphony/issues"
+  },
+  "homepage": "https://github.com/elzup/word-euphony#readme",
+  "keywords": [
+    "euphony",
+    "pronunciation",
+    "ipa",
+    "phonetics",
+    "naming"
+  ],
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "clean": "rm -rf lib",
+    "build": "pnpm clean && pnpm build:cjs && pnpm build:esm && pnpm build:types",
+    "build:cjs": "tsc --module commonjs --declaration false --outDir lib/cjs && echo '{\"type\":\"commonjs\"}' > lib/cjs/package.json",
+    "build:esm": "tsc --declaration false --outDir lib/esm",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir lib/types",
+    "typecheck": "tsc --noEmit -p tsconfig.test.json",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "test:cov": "node --test --experimental-test-coverage --test-coverage-include=\"src/**\" \"test/**/*.test.ts\"",
+    "prepublishOnly": "pnpm test"
+  },
+  "files": [
+    "lib/"
+  ],
+  "sideEffects": false,
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.7",
+    "@types/node": "^24.0.0",
+    "typescript": "^7.0.2"
+  },
+  "packageManager": "pnpm@12.15.0"
+}

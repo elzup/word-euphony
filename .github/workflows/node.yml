@@ -1,0 +1,32 @@
+# Lint, typecheck, build and test across the maintained LTS Node.js lines.
+# https://nodejs.org/en/about/previous-releases
+
+name: Node CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ["**/readme.md"]
+  pull_request:
+    branches: [main]
+    paths-ignore: ["**/readme.md"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [24.x, 26.x]
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4 # version comes from package.json "packageManager"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm typecheck
+      - run: pnpm test:cov # pretest builds lib/

@@ -1,0 +1,42 @@
+# Publishes to npm on a pushed v* tag via Trusted Publishing (OIDC) — no token.
+#
+# Requires a Trusted Publisher on npmjs.com matching exactly:
+#   Owner: elzup, Repository: word-euphony,
+#   Workflow filename: npm-publish.yml, Environment: (empty), allow npm publish.
+# NOTE: the Trusted Publisher link can silently drop when you change the
+# package's publishing-access (2FA) settings — if publish fails with
+# ENEEDAUTH/E404, re-check that the Trusted Publisher is still connected.
+#
+# setup-node's registry-url writes a placeholder _authToken that makes npm
+# skip the OIDC handshake; we strip it so npm sees a registry + no token and
+# performs the OIDC exchange. Node 24 ships npm >= 11.5.1 (OIDC requirement).
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  id-token: write # required for OIDC
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - name: Strip placeholder token so OIDC engages
+        run: |
+          sed -i '/:_authToken=/d; /always-auth/d' "$NPM_CONFIG_USERCONFIG"
+          echo "--- .npmrc after strip ---"
+          cat "$NPM_CONFIG_USERCONFIG"
+      - run: pnpm install --frozen-lockfile
+      - run: npm publish # npm CLI (not pnpm) so the OIDC handshake runs; prepublishOnly runs build + tests
